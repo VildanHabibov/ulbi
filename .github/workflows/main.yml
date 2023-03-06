@@ -1,0 +1,145 @@
+name: BuildTestLint
+run-name: Building Testing Linting.
+on:
+  - push
+  - pull_request
+concurrency:
+  group: GITHUB_HEAD_REF
+  cancel-in-progress: true
+jobs:
+  install-cache:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 19.x ]
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v3
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        id: cache-dependencies
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+      - if: steps.cache-dependencies.outputs.cache-hit != 'true'
+        run: |
+          npm ci
+#      - name: Run build storybook
+#        run: |
+#          npm run storybook:build
+#      - name: test ui (storybook screenshots)
+#        run: npm run test:ui:ci
+
+  lint-format:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [ 19.x ]
+    needs: install-cache
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        id: cache-dependencies
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+      - name: Run lint
+        run: |
+          npm run lint:ts
+      - name: Run prettier
+        run: |
+          npm run lint:scss
+
+  unit-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [19.x]
+    needs: install-cache
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        id: cache-dependencies
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+      - name: Test unit
+        run: |
+          npm run test:unit
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [19.x]
+    needs: install-cache
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        id: cache-dependencies
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+      - name: Run build
+        run: |
+          npm run build:prod
+      - name: Run build storybook
+        run: |
+          npm run storybook:build
+
+  build-and-test-storybook:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [ 19.x ]
+    needs: install-cache
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Restore yarn dependencies
+        uses: actions/cache@v3
+        id: cache-dependencies
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+      - name: Run build storybook
+        run: |
+          npm run storybook:build
+      - name: test ui (storybook screenshots)
+        run: |
+          npm run test:ui:ci

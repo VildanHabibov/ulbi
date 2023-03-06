@@ -1,27 +1,29 @@
-import '../styles/style.scss';
-import {Suspense} from 'react';
-import {Link, Route, Routes} from "react-router-dom";
-import MainPage from "pages/MainPage";
-import AboutPage from "pages/AboutPage";
-import {useTheme} from "app/providers/ThemeProvider";
-
+import classNames from 'classnames'
+import {useDispatch} from 'react-redux'
+import {useTheme} from 'app/providers/ThemeProvider'
+import {AppRouter} from 'app/providers/RouterProvider'
+import {Navbar} from 'widgets/Navbar'
+import {Sidebar} from 'widgets/Sidebar'
+import {useEffect} from 'react'
+import {userActions} from 'entities/User'
 
 const App = () => {
-  const {theme, toggleTheme} = useTheme()
-  return (
-    <div className={`app ${theme}`}>
-      <button onClick={toggleTheme}>Toggle</button>
-      <br/>
-      <Link to='/'>Main</Link>
-      <Link to='about'>About</Link>
-      <Suspense fallback={<div>Loading...</div>}>
-        <Routes>
-          <Route path='/' element={<MainPage/>}></Route>
-          <Route path='/about' element={<AboutPage/>}></Route>
-        </Routes>
-      </Suspense>
-    </div>
-  );
-};
+  const dispatch = useDispatch()
 
-export default App;
+  useEffect(() => {
+    dispatch(userActions.recoveryAuthData())
+  }, [dispatch])
+
+  const {theme} = useTheme()
+  const appClass = classNames('app', theme)
+  return (
+    <div className={appClass}>
+      <Navbar/>
+      <main className="d-flex">
+        <Sidebar/>
+        <AppRouter/>
+      </main>
+    </div>
+  )
+}
+export default App

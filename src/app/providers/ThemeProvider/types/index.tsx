@@ -1,14 +1,14 @@
 export enum Theme {
-  dark = 'dark',
-  light = 'light',
+  DARK = 'dark',
+  LIGHT = 'light',
 }
 
 export interface ThemeContextProps {
-  theme?: Theme;
-  setTheme?: (theme: Theme) => void;
+  theme?: Theme
+  setTheme?: (theme: Theme) => void
 }
 
 export interface UseThemeResult {
-  toggleTheme: () => void;
-  theme: Theme;
+  toggleTheme: () => void
+  theme: Theme
 }
